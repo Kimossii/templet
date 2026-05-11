@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8"
   }
 }
