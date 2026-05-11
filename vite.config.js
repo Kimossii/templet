@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(__dirname);
 
 const includePattern = /<!--\s*@include\s+["'](.+?)["']\s*-->/g;
 
@@ -22,19 +26,26 @@ function resolveIncludes(content, fromFile, rootDir, stack = []) {
   });
 }
 
-function htmlPartialsPlugin() {
+function htmlPartialsPlugin(rootDir) {
   return {
     name: "html-partials-plugin",
     transformIndexHtml(html, ctx) {
-      const rootDir = ctx.server?.config.root
-        ? path.resolve(ctx.server.config.root)
-        : process.cwd();
-      const sourceFile = path.resolve(rootDir, "index.html");
+      const sourceFile = ctx.filename ? path.resolve(ctx.filename) : path.resolve(rootDir, "index.html");
       return resolveIncludes(html, sourceFile, rootDir);
     },
   };
 }
 
 export default defineConfig({
-  plugins: [htmlPartialsPlugin()],
+  root: projectRoot,
+  plugins: [htmlPartialsPlugin(projectRoot)],
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(projectRoot, "index.html"),
+        dashboard: path.resolve(projectRoot, "pages/dashboard.html"),
+        users: path.resolve(projectRoot, "pages/users.html"),
+      },
+    },
+  },
 });
